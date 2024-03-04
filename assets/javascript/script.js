@@ -14,40 +14,134 @@ const questionListEl = document.getElementById("questionList");
 const buttonEl = document.getElementById("jsButton");
 const timerButtonEl = document.getElementById("buttonTimer");
 let secondsLeft = 180;
-let questionsLeft = 5;
+let questions = [
+  {
+    question: "What is Jquery?",
+    answers: [
+      "Something you ask your friend Jay",
+      "A css framework that allows for fast development of web applications",
+      "A Javascript Library designed to simplify HTML DOM tree traversal",
+      "A programming language",
+    ],
+    correct:
+      "A Javascript Library designed to simplify HTML DOM tree traversal",
+  },
+  {
+    question:
+      "Which of these is not a valid keyword for instantiating a variable in Javascript?",
+    answers: ["var", "let", "const", "inst"],
+    correct: "inst",
+  },
+  {
+    question:
+      "Which of these is a valid way to declare a function in Javascript?",
+    answers: [
+      "const funcitonName = () => {...",
+      "functionName function(){...",
+      "function(){...",
+      "function functionName{...",
+    ],
+    correct: "const funcitonName = () => {...",
+  },
+];
+let correctAnswer = "I'm not gonna fall for that";
+let gameover = false;
+let initials = "ABC";
 
 //starts the timer, ticks down by "1 second" at a time.
-function startTimer(){
-  var timerInterval = setInterval(function() {
+function startTimer() {
+  let timerInterval = setInterval(function () {
     secondsLeft--;
+    //this is necessary because if someone answered wrong with less than 50 seconds left you end up with negative numbers. This makes sure those don't get rendered.
+    if (secondsLeft < 0) {
+      secondsLeft = 0;
+      gameover = true;
+    }
     //splits time into minutes and seconds so I can display the timer more readably
-    let minutes = Math.floor(secondsLeft/60);
-    let seconds = secondsLeft%60;
+    let minutes = Math.floor(secondsLeft / 60);
+    let seconds = secondsLeft % 60;
     //this probably isn't the most elegant or proper way of doing this but it works
-    if(seconds<10){seconds=`0${seconds}`}
+    if (seconds < 10) seconds = `0${seconds}`;
     timerButtonEl.textContent = `Time Remaining: ${minutes}:${seconds}`;
 
-    if(secondsLeft === 0) {
+    if (gameover == true) {
       clearInterval(timerInterval);
-      
+      //if gameover was set but there is still time on the clock, the player won and we ask their initials and record their time.
+      if (secondsLeft > 0) {
+        questionEl.innerHTML = `Congratulations, you WIN! You completed the quiz with ${minutes}:${seconds} remaining on the clock`;
+        questionEl.classList.add("d-flex");
+        questionEl.classList.add("justify-content-center");
+        questionListEl.innerHTML = "";
+        initials = prompt(
+          "Congratulations! Please enter your 3 character initials."
+        ).toUpperCase();
+        while (initials.length != 3) {
+          initials = prompt(
+            "Sorry, that was not 3 characters. Please enter your 3 character initials."
+          ).toUpperCase();
+        }
+        console.log(
+          `${initials} completed the quiz with ${secondsLeft} remaining`
+        );
+      } else {
+        //if there is not time on the clock remaining, the player has lost and we make fun of them for their failure
+        questionEl.innerHTML = `I'm sorry, you've failed. You're a failure now. Hope you can live with that.`;
+        questionEl.classList.add("d-flex");
+        questionEl.classList.add("justify-content-center");
+        questionListEl.innerHTML = "";
+      }
     }
-// an astute observer will notice that the timer is lying about how much time is left. This is intentional because I thought it was funny to have the timer tick down faster than it says
-  }, 900);
+    // an astute observer will notice that the timer is lying about how much time is left. This is intentional because I thought it was funny to have the timer tick down faster than it says
+  }, 800);
 }
-
-buttonEl.addEventListener("click", function() {
+//When you press the start button, the timer starts, the button is set to invisble, the
+buttonEl.addEventListener("click", function () {
   buttonEl.classList.add("invisible");
   startTimer();
+  nextQuestion();
 });
 
-function clearQuestions(){
+questionListEl.addEventListener("click", function (event) {
+  let element = event.target;
+  // console.log(element.textContent);
+  if (element.textContent == correctAnswer) {
+    nextQuestion();
+  } else {
+    secondsLeft -= 50;
+  }
+});
 
+//this function shifts the next question off the list, and renders all the questions into the HTML. Then it sets the correct answer variable so the event listener can check if the correct question was selected.
+function nextQuestion() {
+  if (questions.length == 0) {
+    //this is simply an elegant way of ending the game without screwing up the timer display
+    gameover = true;
+
+    return;
+  }
+  document.getElementById("jsQuestions").classList.remove("invisible");
+  let current = questions.shift();
+  questionEl.textContent = current.question;
+  questionListEl.innerHTML = "";
+  for (const answer of current.answers) {
+    let li = document.createElement("li");
+    li.textContent = answer;
+    li.classList.add("list-group-item");
+    questionListEl.appendChild(li);
+  }
+  correctAnswer = current.correct;
 }
 
-function renderQuestions(){
-    if(questionsLeft=0){
-
-    }else{
-        
-    }
+//this function stores the score into local storage. It first pulls the list from local storage,  then checks if this score is better than the worst store in storage, and finally if it is removes that score, stores this one, and sorts the list by scores
+function storeScore(){
+  //first, pull local storage list of scores
+  let scoreList = JSON.parse(localStorage.getItem("scoreList"));
+  if(scoreList == null){
+    scoreList = [{
+      score: secondsLeft,
+      name: initials
+    }];
+  }else{
+    
+  }
 }
