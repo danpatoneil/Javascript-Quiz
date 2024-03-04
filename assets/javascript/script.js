@@ -13,7 +13,6 @@ const questionEl = document.getElementById("questionText");
 const questionListEl = document.getElementById("questionList");
 const buttonEl = document.getElementById("jsButton");
 const timerButtonEl = document.getElementById("buttonTimer");
-let secondsLeft = 180;
 let questions = [
   {
     question: "What is Jquery?",
@@ -44,9 +43,11 @@ let questions = [
     correct: "const funcitonName = () => {...",
   },
 ];
-let correctAnswer = "I'm not gonna fall for that";
+// If I had more time or was a better programmer I'd figure out where these need to be used and passed to/from but that's a bit of code optimization for another day
+let secondsLeft = questions.length*50;
+let correctAnswer = "";
 let gameover = false;
-let initials = "ABC";
+let initials = "";
 
 //starts the timer, ticks down by "1 second" at a time.
 function startTimer() {
@@ -68,21 +69,19 @@ function startTimer() {
       clearInterval(timerInterval);
       //if gameover was set but there is still time on the clock, the player won and we ask their initials and record their time.
       if (secondsLeft > 0) {
-        questionEl.innerHTML = `Congratulations, you WIN! You completed the quiz with ${minutes}:${seconds} remaining on the clock`;
+        //give the user a prompt 
+        initials = prompt("Congratulations! Please enter your 3 letter initials.").toUpperCase();
+        //the only 2 things in life I truly fear is having to build my own CSS and figuring out Regex. Thankfully this I just googled.
+        let regexLetters = /^[a-zA-Z]+$/;
+        while (initials.length != 3||!regexLetters.test(initials)) {
+          initials = prompt("Sorry, that was not 3 letters. Please enter your 3 letter initials.").toUpperCase();
+        }
+        //display the time, remove the list of questions
+        questionEl.innerHTML = `Congratulations ${initials}, you WIN! You completed the quiz with ${minutes}:${seconds} remaining on the clock`;
         questionEl.classList.add("d-flex");
         questionEl.classList.add("justify-content-center");
         questionListEl.innerHTML = "";
-        initials = prompt(
-          "Congratulations! Please enter your 3 character initials."
-        ).toUpperCase();
-        while (initials.length != 3) {
-          initials = prompt(
-            "Sorry, that was not 3 characters. Please enter your 3 character initials."
-          ).toUpperCase();
-        }
-        console.log(
-          `${initials} completed the quiz with ${secondsLeft} remaining`
-        );
+        storeScore();
       } else {
         //if there is not time on the clock remaining, the player has lost and we make fun of them for their failure
         questionEl.innerHTML = `I'm sorry, you've failed. You're a failure now. Hope you can live with that.`;
@@ -91,19 +90,19 @@ function startTimer() {
         questionListEl.innerHTML = "";
       }
     }
-    // an astute observer will notice that the timer is lying about how much time is left. This is intentional because I thought it was funny to have the timer tick down faster than it says
+    // an astute observer will notice that the timer is lying about how much time is left. This is intentional because I thought it was funny to have the timer tick down faster than it says. This is why I've been very careful to not have the text on screen say "seconds" or "minutes"
   }, 800);
 }
-//When you press the start button, the timer starts, the button is set to invisble, the
+//When you press the start button, the timer starts, the button is set to invisble, and the first question loads
 buttonEl.addEventListener("click", function () {
   buttonEl.classList.add("invisible");
+
   startTimer();
   nextQuestion();
 });
-
+// this is the event listener for the questions. It looks at the whole ul, but it checks when you click if you clicked on an li with the correct textContent. If it was correct, it loads the next question. if it wasn't, it subtracts time.
 questionListEl.addEventListener("click", function (event) {
   let element = event.target;
-  // console.log(element.textContent);
   if (element.textContent == correctAnswer) {
     nextQuestion();
   } else {
@@ -116,7 +115,6 @@ function nextQuestion() {
   if (questions.length == 0) {
     //this is simply an elegant way of ending the game without screwing up the timer display
     gameover = true;
-
     return;
   }
   document.getElementById("jsQuestions").classList.remove("invisible");
@@ -136,12 +134,39 @@ function nextQuestion() {
 function storeScore(){
   //first, pull local storage list of scores
   let scoreList = JSON.parse(localStorage.getItem("scoreList"));
+  let winnerScore = {
+    score: secondsLeft,
+    name: initials
+  };
+  //if scoreList is empty, create scorelist and add the winner score to it
   if(scoreList == null){
-    scoreList = [{
-      score: secondsLeft,
-      name: initials
-    }];
+    scoreList = [winnerScore];
+  // if scoreLList ISN'T empty, check that it's an array
+  }else if(Array.isArray(scoreList)){
+    // score list should already be sorted correctly, so simply check that the current score is better than the worst on the list
+    if(scoreList.length<5){
+      scoreList.push(winnerScore);
+    }else if(scoreList[scoreList.length-1].score < winnerScore.score){
+      
+      //pops the worst score off of the score list, which should be the lowest, and adds the new one on the end.
+      scoreList.pop();
+      scoreList.push(winnerScore);
+    }
+    //now the list is complete, but not sorted. We pass the score list to a helper function that accepts an array and returns the array sorted by score
   }else{
-    
+    // if there is something in scoreList but it's not an array, something has gone very wrong
+    console.log("something has gone awry");
   }
+  //sorts score list by the value of the score elements
+  scoreList.sort((a, b) => {
+    if(a.score<b.score){
+    return 1;
+    }else if(a.score>b.score){
+    return -1;
+    }else{
+    return 0;
+    }
+    });
+
+  localStorage.setItem("scoreList", JSON.stringify(scoreList));
 }
