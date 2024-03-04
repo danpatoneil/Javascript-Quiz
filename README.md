@@ -1,7 +1,7 @@
 # Dan O'Neil's Javascript Quiz
 
 ## Javascript Quiz
-This project is a quiz of 5 multiple choice questions that scores you based on the time it takes you to answer and the number of correct answers you submitted. It uses boostrap for CSS and Javascript tracks the score for each question and stores your 5 best scores in your browser's local storage. 
+This project is a quiz of multiple choice questions that scores you based on the time it takes you to answer and the number of correct answers you submitted. It uses boostrap for CSS and Javascript tracks the score for each question and stores your 5 best scores in your browser's local storage. 
 
 ## Installation
 This project runs in a browser and requires no installation beyond a functional web browser.
@@ -17,7 +17,7 @@ In future iterations and updates to this project I would like to try and instead
 
 MIT License
 
-Copyright (c) 2024 Daniel O'Niel
+Copyright (c) 2024 Daniel O'Neil
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

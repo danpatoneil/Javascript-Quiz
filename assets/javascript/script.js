@@ -69,21 +69,18 @@ function startTimer() {
       clearInterval(timerInterval);
       //if gameover was set but there is still time on the clock, the player won and we ask their initials and record their time.
       if (secondsLeft > 0) {
-        questionEl.innerHTML = `Congratulations, you WIN! You completed the quiz with ${minutes}:${seconds} remaining on the clock`;
+        //give the user a prompt 
+        initials = prompt("Congratulations! Please enter your 3 letter initials.").toUpperCase();
+        //the only 2 things in life I truly fear is having to build my own CSS and figuring out Regex. Thankfully this I just googled.
+        let regexLetters = /^[a-zA-Z]+$/;
+        while (initials.length != 3||!regexLetters.test(initials)) {
+          initials = prompt("Sorry, that was not 3 letters. Please enter your 3 letter initials.").toUpperCase();
+        }
+        //display the time, remove the list of questions
+        questionEl.innerHTML = `Congratulations ${initials}, you WIN! You completed the quiz with ${minutes}:${seconds} remaining on the clock`;
         questionEl.classList.add("d-flex");
         questionEl.classList.add("justify-content-center");
         questionListEl.innerHTML = "";
-        initials = prompt(
-          "Congratulations! Please enter your 3 character initials."
-        ).toUpperCase();
-        while (initials.length != 3) {
-          initials = prompt(
-            "Sorry, that was not 3 characters. Please enter your 3 character initials."
-          ).toUpperCase();
-        }
-        console.log(
-          `${initials} completed the quiz with ${secondsLeft} remaining`
-        );
         storeScore();
       } else {
         //if there is not time on the clock remaining, the player has lost and we make fun of them for their failure
@@ -93,20 +90,19 @@ function startTimer() {
         questionListEl.innerHTML = "";
       }
     }
-    // an astute observer will notice that the timer is lying about how much time is left. This is intentional because I thought it was funny to have the timer tick down faster than it says
+    // an astute observer will notice that the timer is lying about how much time is left. This is intentional because I thought it was funny to have the timer tick down faster than it says. This is why I've been very careful to not have the text on screen say "seconds" or "minutes"
   }, 800);
 }
-//When you press the start button, the timer starts, the button is set to invisble, the
+//When you press the start button, the timer starts, the button is set to invisble, and the first question loads
 buttonEl.addEventListener("click", function () {
   buttonEl.classList.add("invisible");
 
   startTimer();
   nextQuestion();
 });
-
+// this is the event listener for the questions. It looks at the whole ul, but it checks when you click if you clicked on an li with the correct textContent. If it was correct, it loads the next question. if it wasn't, it subtracts time.
 questionListEl.addEventListener("click", function (event) {
   let element = event.target;
-  // console.log(element.textContent);
   if (element.textContent == correctAnswer) {
     nextQuestion();
   } else {
@@ -161,6 +157,7 @@ function storeScore(){
     // if there is something in scoreList but it's not an array, something has gone very wrong
     console.log("something has gone awry");
   }
+  //sorts score list by the value of the score elements
   scoreList.sort((a, b) => {
     if(a.score<b.score){
     return 1;
