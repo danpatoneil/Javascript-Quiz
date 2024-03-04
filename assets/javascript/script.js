@@ -13,7 +13,6 @@ const questionEl = document.getElementById("questionText");
 const questionListEl = document.getElementById("questionList");
 const buttonEl = document.getElementById("jsButton");
 const timerButtonEl = document.getElementById("buttonTimer");
-let secondsLeft = 180;
 let questions = [
   {
     question: "What is Jquery?",
@@ -44,9 +43,11 @@ let questions = [
     correct: "const funcitonName = () => {...",
   },
 ];
-let correctAnswer = "I'm not gonna fall for that";
+// If I had more time or was a better programmer I'd figure out where these need to be used and passed to/from but that's a bit of code optimization for another day
+let secondsLeft = questions.length*50;
+let correctAnswer = "";
 let gameover = false;
-let initials = "ABC";
+let initials = "";
 
 //starts the timer, ticks down by "1 second" at a time.
 function startTimer() {
@@ -83,6 +84,7 @@ function startTimer() {
         console.log(
           `${initials} completed the quiz with ${secondsLeft} remaining`
         );
+        storeScore();
       } else {
         //if there is not time on the clock remaining, the player has lost and we make fun of them for their failure
         questionEl.innerHTML = `I'm sorry, you've failed. You're a failure now. Hope you can live with that.`;
@@ -97,6 +99,7 @@ function startTimer() {
 //When you press the start button, the timer starts, the button is set to invisble, the
 buttonEl.addEventListener("click", function () {
   buttonEl.classList.add("invisible");
+
   startTimer();
   nextQuestion();
 });
@@ -116,7 +119,6 @@ function nextQuestion() {
   if (questions.length == 0) {
     //this is simply an elegant way of ending the game without screwing up the timer display
     gameover = true;
-
     return;
   }
   document.getElementById("jsQuestions").classList.remove("invisible");
@@ -136,12 +138,38 @@ function nextQuestion() {
 function storeScore(){
   //first, pull local storage list of scores
   let scoreList = JSON.parse(localStorage.getItem("scoreList"));
+  let winnerScore = {
+    score: secondsLeft,
+    name: initials
+  };
+  //if scoreList is empty, create scorelist and add the winner score to it
   if(scoreList == null){
-    scoreList = [{
-      score: secondsLeft,
-      name: initials
-    }];
+    scoreList = [winnerScore];
+  // if scoreLList ISN'T empty, check that it's an array
+  }else if(Array.isArray(scoreList)){
+    // score list should already be sorted correctly, so simply check that the current score is better than the worst on the list
+    if(scoreList.length<5){
+      scoreList.push(winnerScore);
+    }else if(scoreList[scoreList.length-1].score < winnerScore.score){
+      
+      //pops the worst score off of the score list, which should be the lowest, and adds the new one on the end.
+      scoreList.pop();
+      scoreList.push(winnerScore);
+    }
+    //now the list is complete, but not sorted. We pass the score list to a helper function that accepts an array and returns the array sorted by score
   }else{
-    
+    // if there is something in scoreList but it's not an array, something has gone very wrong
+    console.log("something has gone awry");
   }
+  scoreList.sort((a, b) => {
+    if(a.score<b.score){
+    return 1;
+    }else if(a.score>b.score){
+    return -1;
+    }else{
+    return 0;
+    }
+    });
+
+  localStorage.setItem("scoreList", JSON.stringify(scoreList));
 }
